@@ -1,0 +1,31 @@
+name: Xcode Build (Release)
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Archive and export .app
+        run: |
+          set -e
+          cd bitchat
+          mkdir -p build/export
+          xcodebuild -project bitchat.xcodeproj -scheme "bitchat (iOS)" -configuration Release CODE_SIGNING_ALLOWED=NO clean archive -archivePath build/bitchat.xcarchive
+          cp -R build/bitchat.xcarchive/Products/Applications/*.app build/export/
+          ls -la build/export
+        shell: bash
+      - name: Upload .app artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bitchat-app
+          path: bitchat/build/export/*.app
